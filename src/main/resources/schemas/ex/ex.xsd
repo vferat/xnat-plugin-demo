@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ xnat-template-plugin: template.xsd
+  ~ XNAT https://www.xnat.org
+  ~ Copyright (c) 2005-2021, Washington University School of Medicine
+  ~ All Rights Reserved
+  ~
+  ~ Released under the Simplified BSD.
+  -->
+
+<!--
+	TODO: You can use this as the basis for an XNAT data-type definition or simply delete it. Note that there are other
+	files related to the data type defined here:
+
+	 - src/main/java/org/apache/turbine/app/xnat/modules/screens/XDATScreen_edit_template_sample.java
+	 - src/main/java/org/apache/turbine/app/xnat/modules/screens/XDATScreen_report_template_sample.java
+	 - src/main/resources/META-INF/resources/templates/screens/XDATScreen_edit_template_sample.vm
+	 - src/main/resources/META-INF/resources/templates/screens/XDATScreen_report_template_sample.vm
+	 - src/main/resources/META-INF/resources/templates/screens/xnat_subjectData/actionsBox/sample.vm
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:xnat="http://nrg.wustl.edu/xnat"
+           xmlns:ex="test/ex"
+           targetNamespace="test/ex"
+           elementFormDefault="qualified">
+    <!-- Imports -->  
+	<xs:import namespace="http://nrg.wustl.edu/xnat" schemaLocation="../xnat/xnat.xsd"/>
+    <!-- Element -->
+    <xs:element name="exprojectMetadata" type="ex:projectMetadata"/>
+    <!-- Type Definition bids:imageSessionData-->  
+    <xs:complexType name="projectMetadata">
+        <xs:complexContent>
+            <xs:extension base="xnat:abstractProjectAsset">
+                <xs:sequence>
+                    <xs:element name="example" type="xs:string" minOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

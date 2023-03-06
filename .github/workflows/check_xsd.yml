@@ -1,0 +1,28 @@
+
+name: Validate XSD
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}-${{ github.event.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  push_to_registry:
+    name: Validate XSD files.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: pip install -r .github/workflows/check_xsd/requirements.txt
+        shell: sh
+      - name: Run validateXSD
+        run: cp -a .github/workflows/check_xsd/xnat_schemas/ src/main/resources/schemas/bids/
+        shell: sh
+      - name: Run validateXSD
+        run: python .github/workflows/check_xsd/check_xsd.py
+        shell: sh
