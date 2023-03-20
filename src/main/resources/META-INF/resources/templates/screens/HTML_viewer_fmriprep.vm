@@ -1,0 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+$page.setTitle("XDAT")
+$page.setLinkColor($ui.alink)
+$page.setVlinkColor($ui.vlink)
+
+<script type="text/javascript">
+	const project = $project.getId()
+	XNAT.xhr.get(`/data/projects/${project}/resources/FMRIPREP/files/sample_report.html`, sethtml);
+	function sethtml(resp){
+		const parser = new DOMParser();
+		const htmlDoc = parser.parseFromString(resp, 'text/html');
+		//document.body.appendChild(htmlDoc.documentElement);
+	}
+</script>
+
+<p> HTML viewer 199</p>

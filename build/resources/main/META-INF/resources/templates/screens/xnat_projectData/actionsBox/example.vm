@@ -1,11 +1,10 @@
 <li class="yuimenuitem">
-    <a class="yuimenuitemlabel" href="#insertbox">Example</a>
+    <a class="yuimenuitemlabel" href="#insertbox">HTML Viewer</a>
     <div id="insertbox" class="yuimenu">
         <div class="bd">
             <ul class="first-of-type" style="width: 170px;">
                 <li class="yuimenuitem">
-                    <a class="yuimenuitemlabel" href="$link.setPage("XDATScreen_edit_ex_projectMetadata.vm").addPathInfo('project',$project.getId())">Edit</a>
-                    <a class="yuimenuitemlabel" href="$link.setPage("XDATScreen_report_ex_projectMetadata.vm").addPathInfo('project',$project.getId())">Report</a>
+                    <a class="yuimenuitemlabel" href="$link.setPage("HTML_viewer_fmriprep.vm").addPathInfo('project',$project.getId())">Report</a>
                 </li>
             </ul>
         </div>
