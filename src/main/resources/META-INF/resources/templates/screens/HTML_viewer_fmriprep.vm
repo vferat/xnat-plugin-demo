@@ -4,13 +4,55 @@ $page.setLinkColor($ui.alink)
 $page.setVlinkColor($ui.vlink)
 
 <script type="text/javascript">
-	const project = $project.getId()
-	XNAT.xhr.get(`/data/projects/${project}/resources/FMRIPREP/files/sample_report.html`, sethtml);
+	// Project
+	const project = XNAT.data.context.projectID
+	XNAT.xhr.getFormatJSON(`/data/projects/${project}/resources`, getFMRIPREP);
+	// Check if FMRIPREP resource exist
+	function getFMRIPREP(resp){
+		const result = resp.ResultSet.Result;
+		var exists = false
+		result.forEach(function (item, index) {
+  			if (item.label == "FMRIPREP"){
+    			exists = true  
+ 			}
+		});
+		// 
+		if (exists){
+			XNAT.xhr.getText(`/data/projects/${project}/resources/FMRIPREP/files/sub-s05.html`, sethtml);
+		} else {
+			document.getElementById('report').innerHTML = `No FMRIPREP Resource found for project ${project}.`;
+		}
+	}
+
 	function sethtml(resp){
 		const parser = new DOMParser();
 		const htmlDoc = parser.parseFromString(resp, 'text/html');
-		//document.body.appendChild(htmlDoc.documentElement);
+		// Change image links
+		Array.from(htmlDoc.getElementsByClassName("svg-reportlet")).forEach(function (item, index) {
+				var src = item.getAttribute('src')
+				console.log(src);
+				if (src){
+					var path = `/data/projects/${project}/resources/FMRIPREP/files/` + src.substring(2);
+					item.outerHTML = path;
+				}
+ 		});
+		// Render
+		document.getElementById('report').innerHTML = `FMRIPREP Report.`;
+		document.body.appendChild(htmlDoc.documentElement);
+	}
+
+</script>
+
+<script type="text/javascript">
+	XNAT.xhr.getText(`/data/projects/${project}/resources/FMRIPREP/files/sub-s05_ses-01_desc-reconall_T1w.svg`, setsvg);
+	function setsvg(resp){
+		const svg_parser = new DOMParser();
+		const svg_img = svg_parser.parseFromString(resp, "image/svg+xml");
+		console.log(svg_img);
+		document.getElementById('svg').innerHTML = svg_img.documentElement;
 	}
 </script>
 
-<p> HTML viewer 199</p>
+<p id="svg"></p>
+<p id="report"></p>
+
