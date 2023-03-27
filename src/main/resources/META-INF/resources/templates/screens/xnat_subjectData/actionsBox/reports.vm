@@ -1,0 +1,12 @@
+<li class="yuimenuitem">
+    <a class="yuimenuitemlabel" href="#insertbox">Reports</a>
+    <div id="insertbox" class="yuimenu">
+        <div class="bd">
+            <ul class="first-of-type" style="width: 170px;">
+                <li class="yuimenuitem">
+                    <a class="yuimenuitemlabel" href="$link.setPage("HTML_viewer_fmriprep.vm").addPathInfo("project","$!project").addPathInfo('subject_id',$!subject.id).addPathInfo('subject_label',$!subject.label)">FMRIPREP</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</li>

@@ -1,4 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+
 $page.setTitle("XDAT")
 $page.setLinkColor($ui.alink)
 $page.setVlinkColor($ui.vlink)
@@ -6,53 +7,74 @@ $page.setVlinkColor($ui.vlink)
 <script type="text/javascript">
 	// Project
 	const project = XNAT.data.context.projectID
-	XNAT.xhr.getFormatJSON(`/data/projects/${project}/resources`, getFMRIPREP);
+	// Subject
+	const currentUrl = window.location.href;
+	const pathArray = new URL(currentUrl).pathname.split('/');
+	// Find the index of the "subjectid" segment in the path array
+	const subjectIdIndex = pathArray.indexOf('subject_id');
+	const subject_id = pathArray[subjectIdIndex + 1];
+	// Find the index of the "subjectid" segment in the path array
+	const subjectLabelIndex = pathArray.indexOf('subject_label');
+	const subject_label = pathArray[subjectLabelIndex + 1];
+	
+	XNAT.xhr.getFormatJSON(`/data/projects/${project}/subjects/${subject_label}/resources`, getFMRIPREP);
 	// Check if FMRIPREP resource exist
 	function getFMRIPREP(resp){
 		const result = resp.ResultSet.Result;
-		var exists = false
+		var xnat_abstractresource_id = null;
+		var exists = false;
 		result.forEach(function (item, index) {
   			if (item.label == "FMRIPREP"){
-    			exists = true  
+    			exists = true;
+				xnat_abstractresource_id = item.xnat_abstractresource_id;
+				window.base_uri = `/data/projects/${project}/subjects/${subject_id}/resources/${xnat_abstractresource_id}/files/`;
  			}
 		});
 		// 
 		if (exists){
-			XNAT.xhr.getText(`/data/projects/${project}/resources/FMRIPREP/files/sub-s05.html`, loadReport);
+			XNAT.xhr.getText(window.base_uri + `sub-${subject_label}.html`, loadReport);
+
 		} else {
-			document.getElementById('report').body.innerHTML = `No FMRIPREP Resource found for project ${project}.`;
+			document.getElementById('report').body.innerHTML = `No FMRIPREP Resource found for subject ${subject_label}.`;
 		}
 	}
 
 	function loadReport(resp){
 		const parser = new DOMParser();
-		const htmlDoc = parser.parseFromString(resp, 'text/html');
+		window.htmlDoc = parser.parseFromString(resp, 'text/html');
 		// Load Images
-		Array.from(htmlDoc.getElementsByClassName("svg-reportlet")).forEach(function (item, index) {
+		Array.from(window.htmlDoc.getElementsByClassName("svg-reportlet")).forEach(function (item, index) {
 				// if src
 				var src = item.getAttribute('src');
 				if (src){
-					var path = `/data/projects/${project}/resources/FMRIPREP/files/` + src.substring(2);
-					path = `/data/projects/${project}/resources/FMRIPREP/files/sub-s05_ses-01_desc-reconall_T1w.svg`;
+					var pathSegments = src.split('/');
+					var fileName = pathSegments[pathSegments.length - 1];
+					var path = window.base_uri + fileName;
 					XNAT.xhr.getText(path, (r) => {setSvgData(r, item)});
 				}
 				// if data
 				var data = item.getAttribute('data');
 				if (data){
-					item.data = "";
-					var path = `/data/projects/${project}/resources/FMRIPREP/files/` + data.substring(2);
-					var path = `/data/projects/${project}/resources/FMRIPREP/files/sub-s05_ses-01_desc-reconall_T1w.svg`;
+					var pathSegments = data.split('/');
+					var fileName = pathSegments[pathSegments.length - 1];
+					var path = window.base_uri + fileName;
 					XNAT.xhr.getText(path, (r) => {setSvgData(r, item)});
 				}
  		});
-		// Render
-		var s = document.getElementById('report');
-		s.contentDocument.body.appendChild(htmlDoc.documentElement);
-		}
+	}
 
-		function setSvgData(resp, item){
-			item.outerHTML = resp;
-		}
+	function render_report(){
+		// Render
+		var s = document.getElementById('report').contentWindow.document;
+		s.open();
+		s.write('<!DOCTYPE html>' + window.htmlDoc.documentElement.outerHTML);
+		s.close();
+	}
+
+	function setSvgData(resp, item){
+		item.outerHTML = resp;
+		render_report();
+	}
 </script>
 
 <iframe id="report" width="100%" height="1024"></iframe>
