@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Application-Name: XNAT  eXplugin for XNAT 1.8
-Build-Date: Tue Mar 21 15:52:31 CET 2023
+Build-Date: Mon Mar 27 14:41:40 CEST 2023
 Build-Number: Manual
 Implementation-Version: 1.0.0-SNAPSHOT
 Implementation-Sha: None

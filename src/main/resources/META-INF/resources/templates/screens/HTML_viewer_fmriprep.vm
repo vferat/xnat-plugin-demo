@@ -18,41 +18,41 @@ $page.setVlinkColor($ui.vlink)
 		});
 		// 
 		if (exists){
-			XNAT.xhr.getText(`/data/projects/${project}/resources/FMRIPREP/files/sub-s05.html`, sethtml);
+			XNAT.xhr.getText(`/data/projects/${project}/resources/FMRIPREP/files/sub-s05.html`, loadReport);
 		} else {
-			document.getElementById('report').innerHTML = `No FMRIPREP Resource found for project ${project}.`;
+			document.getElementById('report').body.innerHTML = `No FMRIPREP Resource found for project ${project}.`;
 		}
 	}
 
-	function sethtml(resp){
+	function loadReport(resp){
 		const parser = new DOMParser();
 		const htmlDoc = parser.parseFromString(resp, 'text/html');
-		// Change image links
+		// Load Images
 		Array.from(htmlDoc.getElementsByClassName("svg-reportlet")).forEach(function (item, index) {
-				var src = item.getAttribute('src')
-				console.log(src);
+				// if src
+				var src = item.getAttribute('src');
 				if (src){
 					var path = `/data/projects/${project}/resources/FMRIPREP/files/` + src.substring(2);
-					item.outerHTML = path;
+					path = `/data/projects/${project}/resources/FMRIPREP/files/sub-s05_ses-01_desc-reconall_T1w.svg`;
+					XNAT.xhr.getText(path, (r) => {setSvgData(r, item)});
+				}
+				// if data
+				var data = item.getAttribute('data');
+				if (data){
+					item.data = "";
+					var path = `/data/projects/${project}/resources/FMRIPREP/files/` + data.substring(2);
+					var path = `/data/projects/${project}/resources/FMRIPREP/files/sub-s05_ses-01_desc-reconall_T1w.svg`;
+					XNAT.xhr.getText(path, (r) => {setSvgData(r, item)});
 				}
  		});
 		// Render
-		document.getElementById('report').innerHTML = `FMRIPREP Report.`;
-		document.body.appendChild(htmlDoc.documentElement);
-	}
+		var s = document.getElementById('report');
+		s.contentDocument.body.appendChild(htmlDoc.documentElement);
+		}
 
+		function setSvgData(resp, item){
+			item.outerHTML = resp;
+		}
 </script>
 
-<script type="text/javascript">
-	XNAT.xhr.getText(`/data/projects/${project}/resources/FMRIPREP/files/sub-s05_ses-01_desc-reconall_T1w.svg`, setsvg);
-	function setsvg(resp){
-		const svg_parser = new DOMParser();
-		const svg_img = svg_parser.parseFromString(resp, "image/svg+xml");
-		console.log(svg_img);
-		document.getElementById('svg').innerHTML = svg_img.documentElement;
-	}
-</script>
-
-<p id="svg"></p>
-<p id="report"></p>
-
+<iframe id="report" width="100%" height="1024"></iframe>
