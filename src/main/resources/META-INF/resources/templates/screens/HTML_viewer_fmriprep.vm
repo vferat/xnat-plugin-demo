@@ -4,60 +4,90 @@ $page.setTitle("XDAT")
 $page.setLinkColor($ui.alink)
 $page.setVlinkColor($ui.vlink)
 
+<select id="select_subject">
+</select>
+
+<iframe id="report" width="100%" height="1024"></iframe>
+
 <script type="text/javascript">
-	// Project
-	const project = XNAT.data.context.projectID
-	// Subject
-	const currentUrl = window.location.href;
-	const pathArray = new URL(currentUrl).pathname.split('/');
-	// Find the index of the "subjectid" segment in the path array
-	const subjectIdIndex = pathArray.indexOf('subject_id');
-	const subject_id = pathArray[subjectIdIndex + 1];
-	// Find the index of the "subjectid" segment in the path array
-	const subjectLabelIndex = pathArray.indexOf('subject_label');
-	const subject_label = pathArray[subjectLabelIndex + 1];
-	
-	XNAT.xhr.getFormatJSON(`/data/projects/${project}/subjects/${subject_label}/resources`, getFMRIPREP);
+	window.onload = load_project;
+	// Load Project
+	function load_project(){
+		const project = XNAT.data.context.projectID;
+		window.context = {};
+		window.context.project = project
+		XNAT.xhr.getFormatJSON(`/data/projects/${project}/resources`, get_fmriprep_resource);
+	}
+
 	// Check if FMRIPREP resource exist
-	function getFMRIPREP(resp){
+	function get_fmriprep_resource(resp){
 		const result = resp.ResultSet.Result;
 		var xnat_abstractresource_id = null;
 		var exists = false;
 		result.forEach(function (item, index) {
-  			if (item.label == "FMRIPREP"){
+  			if (item.label == "fmriprep_"){
     			exists = true;
-				xnat_abstractresource_id = item.xnat_abstractresource_id;
-				window.base_uri = `/data/projects/${project}/subjects/${subject_id}/resources/${xnat_abstractresource_id}/files/`;
  			}
 		});
-		// 
+		// Find available subjects
 		if (exists){
-			XNAT.xhr.getText(window.base_uri + `sub-${subject_label}.html`, loadReport);
-
+			XNAT.xhr.getJSON(`/data/projects/${window.context.project}/resources/fmriprep_/files/`, get_subject_reports);
 		} else {
-			document.getElementById('report').body.innerHTML = `No FMRIPREP Resource found for subject ${subject_label}.`;
+			document.getElementById('report').body.outerHTML = `No fmriprep_ Resource found this project.`;
 		}
 	}
 
-	function loadReport(resp){
+	// Get all available reports
+	function get_subject_reports(resp){
+		const result = resp.ResultSet.Result;
+		var select = document.getElementById("select_subject");
+		var reports = []
+		result.forEach(function (item, index) {
+			if (item.Name.endsWith(".html")){
+				reports.push(item);
+			}
+		});
+
+		var options = $.map(reports, function(item, idx) {
+		var opt = $("<option/>").val(item.Name).text(item.Name).data('obj', item);
+		return opt;
+		});
+					
+		$.fn.append.apply($("#select_subject"), options)
+		.change(function() {
+			$("#select_subject option:selected")
+			.each(function(){
+				var item = $(this).data('obj');
+				window.context.item = item;
+				XNAT.xhr.getHTML(item.URI, load_subject_report);
+			});
+		});
+	}
+</script>
+
+<script type="text/javascript">
+	function load_subject_report(resp){
 		const parser = new DOMParser();
-		window.htmlDoc = parser.parseFromString(resp, 'text/html');
+		const htmlDoc = parser.parseFromString(resp, 'text/html');
+		// base_uri
+		var item_uri = window.context.item.URI;
+		var base_uri = item_uri.substring(0, item_uri.lastIndexOf('/')) + "/";
 		// Load Images
-		Array.from(window.htmlDoc.getElementsByClassName("svg-reportlet")).forEach(function (item, index) {
+		Array.from(htmlDoc.getElementsByClassName("svg-reportlet")).forEach(function (item, index) {
 				// if src
 				var src = item.getAttribute('src');
 				if (src){
-					var pathSegments = src.split('/');
-					var fileName = pathSegments[pathSegments.length - 1];
-					var path = window.base_uri + fileName;
+					var filepath = src.slice(2);
+					var path = base_uri + filepath;
+					console.log(path);
 					XNAT.xhr.getText(path, (r) => {setSvgData(r, item)});
 				}
 				// if data
 				var data = item.getAttribute('data');
 				if (data){
-					var pathSegments = data.split('/');
-					var fileName = pathSegments[pathSegments.length - 1];
-					var path = window.base_uri + fileName;
+					var filepath = data.slice(2);
+					var path = base_uri + filepath;
+					console.log(path);
 					XNAT.xhr.getText(path, (r) => {setSvgData(r, item)});
 				}
  		});
@@ -77,4 +107,3 @@ $page.setVlinkColor($ui.vlink)
 	}
 </script>
 
-<iframe id="report" width="100%" height="1024"></iframe>
